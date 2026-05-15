@@ -31,6 +31,13 @@ function pct(num, den) {
   return `${Math.round((num / den) * 100)}%`;
 }
 
+function fiscalYearFromFilename(filename) {
+  const base = String(filename || "").replace(/\.[^.]+$/, "");
+  const match = base.match(/(\d{2})(\d{2})/);
+  if (!match) return "FY";
+  return `FY 20${match[1]}-${match[2]}`;
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -116,9 +123,8 @@ function sumRows(rows) {
     acc.billing += val(row, "Billing");
     acc.revenue += val(row, "Revenue");
     acc.cost += val(row, "Cost");
-    acc.rows += 1;
     return acc;
-  }, { billing: 0, revenue: 0, cost: 0, target: targetForRows(rows), rows: 0 });
+  }, { billing: 0, revenue: 0, cost: 0, target: targetForRows(rows) });
 }
 
 function groupRows(rows, key) {
@@ -144,11 +150,10 @@ function sortGroups(groups, key) {
 }
 
 function renderRows(target, rows, firstLabel, includeTarget = false) {
-  const emptyCols = includeTarget ? 6 : 5;
+  const emptyCols = includeTarget ? 5 : 4;
   target.innerHTML = rows.length ? rows.map(item => `
     <tr>
       <td>${escapeHtml(item.name)}</td>
-      <td>${item.rows}</td>
       <td>${fmt(item.billing)}</td>
       <td>${fmt(item.revenue)}</td>
       ${includeTarget ? `<td>${item.target ? fmt(item.target) : "-"}</td><td>${item.target ? pct(item.revenue, item.target) : "-"}</td>` : `<td>${pct(item.revenue, item.billing)}</td>`}
@@ -159,7 +164,6 @@ function renderRows(target, rows, firstLabel, includeTarget = false) {
 function renderSummary(totals) {
   document.querySelector("#summaryTable").innerHTML = `
     <tr>
-      <td>${totals.rows}</td>
       <td>${fmt(totals.billing)}</td>
       <td>${fmt(totals.cost)}</td>
       <td>${fmt(totals.revenue)}</td>
@@ -178,8 +182,8 @@ function renderClients(rows) {
 function render() {
   const rows = filteredRows();
   const totals = sumRows(rows);
-  document.querySelector("#rowCount").textContent = `${rows.length} / ${rawRows.length} rows`;
   document.querySelector("#sourceName").textContent = currentSource;
+  document.querySelector("#fiscalYearLabel").textContent = fiscalYearFromFilename(currentSource);
   renderSummary(totals);
   renderRows(document.querySelector("#monthTable"), sortGroups(groupRows(rows, "Month"), "Month"), "Month");
   renderRows(document.querySelector("#branchTable"), sortGroups(groupRows(rows, "Branch"), "Branch"), "Branch");
@@ -230,7 +234,7 @@ async function handleUpload(event) {
     currentSource = file.name;
     refreshFilters(true);
     render();
-    status.textContent = `Loaded ${rawRows.length} rows from ${file.name}.`;
+    status.textContent = `Loaded ${file.name}.`;
   } catch (error) {
     status.textContent = `Could not load workbook: ${error.message}`;
   }
