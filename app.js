@@ -31,6 +31,11 @@ function pct(num, den) {
   return `${Math.round((num / den) * 100)}%`;
 }
 
+function setText(selector, value) {
+  const element = document.querySelector(selector);
+  if (element) element.textContent = value;
+}
+
 function fiscalYearFromFilename(filename) {
   const base = String(filename || "").replace(/\.[^.]+$/, "");
   const match = base.match(/(\d{2})(\d{2})/);
@@ -182,8 +187,8 @@ function renderClients(rows) {
 function render() {
   const rows = filteredRows();
   const totals = sumRows(rows);
-  document.querySelector("#sourceName").textContent = currentSource;
-  document.querySelector("#fiscalYearLabel").textContent = fiscalYearFromFilename(currentSource);
+  setText("#sourceName", currentSource);
+  setText("#fiscalYearLabel", fiscalYearFromFilename(currentSource));
   renderSummary(totals);
   renderRows(document.querySelector("#monthTable"), sortGroups(groupRows(rows, "Month"), "Month"), "Month");
   renderRows(document.querySelector("#branchTable"), sortGroups(groupRows(rows, "Branch"), "Branch"), "Branch");
