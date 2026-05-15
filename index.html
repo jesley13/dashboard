@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Billing & Revenue Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">FY 2026-27</p>
+          <h1>Billing & Revenue Dashboard</h1>
+        </div>
+        <div class="source-pill">
+          <span id="rowCount">0 rows</span>
+          <span id="sourceName">2627.xlsx</span>
+        </div>
+      </header>
+
+      <section class="upload-panel" aria-label="Upload revised Excel">
+        <label class="upload-box" for="excelUpload">
+          <span>Upload Revised Excel</span>
+          <input id="excelUpload" type="file" accept=".xlsx,.xls">
+        </label>
+        <p id="uploadStatus">Current dashboard is loaded from the original workbook data.</p>
+      </section>
+
+      <section class="filters" aria-label="Dashboard filters">
+        <label>
+          <span>Month</span>
+          <select id="monthFilter"></select>
+        </label>
+        <label>
+          <span>Branch</span>
+          <select id="branchFilter"></select>
+        </label>
+        <label>
+          <span>Executive</span>
+          <select id="executiveFilter"></select>
+        </label>
+        <label>
+          <span>Stream</span>
+          <select id="streamFilter"></select>
+        </label>
+        <button id="resetFilters" type="button">Reset</button>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel span-2">
+          <div class="panel-head">
+            <div>
+              <h2>Summary</h2>
+              <p>Filtered billing and revenue totals</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Cost</th>
+                  <th>Revenue</th>
+                  <th>Gross Margin</th>
+                  <th>Target</th>
+                  <th>Target %</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Month-wise</h2>
+              <p>Billing and revenue by month</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody id="monthTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Branch-wise</h2>
+              <p>Billing and revenue by branch</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Branch</th>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody id="branchTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Executive Target vs Revenue</h2>
+              <p>Target progress by executive</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Executive</th>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Revenue</th>
+                  <th>Target</th>
+                  <th>Target %</th>
+                </tr>
+              </thead>
+              <tbody id="executiveTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Stream-wise</h2>
+              <p>Billing and revenue by stream</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Stream</th>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody id="streamTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel span-2">
+          <div class="panel-head">
+            <div>
+              <h2>Top Clients</h2>
+              <p>Highest revenue clients in the filtered view</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Rows</th>
+                  <th>Billing</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody id="clientTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
