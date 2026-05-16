@@ -159,10 +159,10 @@ function renderRows(target, rows, firstLabel, includeTarget = false) {
   const emptyCols = includeTarget ? 5 : 4;
   target.innerHTML = rows.length ? rows.map(item => `
     <tr>
-      <td>${escapeHtml(item.name)}</td>
-      <td>${fmt(item.billing)}</td>
-      <td>${fmt(item.revenue)}</td>
-      ${includeTarget ? `<td>${item.target ? fmt(item.target) : "-"}</td><td>${item.target ? pct(item.revenue, item.target) : "-"}</td>` : `<td>${pct(item.revenue, item.billing)}</td>`}
+      <td class="row-title" data-label="${escapeHtml(firstLabel)}">${escapeHtml(item.name)}</td>
+      <td data-label="Billing">${fmt(item.billing)}</td>
+      <td data-label="Revenue">${fmt(item.revenue)}</td>
+      ${includeTarget ? `<td data-label="Target">${item.target ? fmt(item.target) : "-"}</td><td data-label="Target %">${item.target ? pct(item.revenue, item.target) : "-"}</td>` : `<td data-label="Margin">${pct(item.revenue, item.billing)}</td>`}
     </tr>
   `).join("") : `<tr><td colspan="${emptyCols}">No records match the current filters.</td></tr>`;
 }
@@ -170,12 +170,12 @@ function renderRows(target, rows, firstLabel, includeTarget = false) {
 function renderSummary(totals) {
   document.querySelector("#summaryTable").innerHTML = `
     <tr>
-      <td>${fmt(totals.billing)}</td>
-      <td>${fmt(totals.cost)}</td>
-      <td>${fmt(totals.revenue)}</td>
-      <td>${pct(totals.revenue, totals.billing)}</td>
-      <td>${totals.target ? fmt(totals.target) : "-"}</td>
-      <td>${totals.target ? pct(totals.revenue, totals.target) : "-"}</td>
+      <td data-label="Billing">${fmt(totals.billing)}</td>
+      <td data-label="Cost">${fmt(totals.cost)}</td>
+      <td data-label="Revenue">${fmt(totals.revenue)}</td>
+      <td data-label="Gross Margin">${pct(totals.revenue, totals.billing)}</td>
+      <td data-label="Target">${totals.target ? fmt(totals.target) : "-"}</td>
+      <td data-label="Target %">${totals.target ? pct(totals.revenue, totals.target) : "-"}</td>
     </tr>
   `;
 }

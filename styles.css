@@ -361,9 +361,88 @@ td:first-child {
     padding: 12px;
   }
 
+  .table-wrap {
+    overflow-x: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  table,
+  thead,
+  tbody,
+  tr,
   th,
   td {
-    padding: 9px 8px;
+    display: block;
+    width: 100%;
+  }
+
+  thead {
+    display: none;
+  }
+
+  table {
+    background: transparent;
+  }
+
+  tr {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  tr + tr {
+    margin-top: 10px;
+  }
+
+  tbody tr:nth-child(even),
+  tbody tr:hover {
+    background: #ffffff;
+  }
+
+  td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
     font-size: 12px;
+  }
+
+  td::before {
+    content: attr(data-label);
+    flex: 0 0 42%;
+    color: var(--muted);
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  td:last-child {
+    border-bottom: 0;
+  }
+
+  td:first-child {
+    min-width: 0;
+  }
+
+  td.row-title {
+    display: block;
+    padding-top: 0;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 850;
+    text-align: left;
+  }
+
+  td.row-title::before {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 10px;
   }
 }
