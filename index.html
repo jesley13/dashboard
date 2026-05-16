@@ -13,19 +13,16 @@
           <p class="eyebrow" id="fiscalYearLabel">FY 2026-27</p>
           <h1>Billing & Revenue Dashboard</h1>
         </div>
-        <!-- <div class="source-pill">
-          <span id="sourceName">Excel workbook</span>
-        </div> -->
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-top: 4px;">
+          <label style="cursor: pointer; background: var(--black); color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 700;">
+            File
+            <input type="file" id="fileUpload" accept=".xlsx" style="display: none;" />
+          </label>
+          <p id="uploadStatus" style="font-size: 11px; color: var(--muted); margin: 0; text-align: right;">Loading...</p>
+        </div>
       </header>
 
-      <section class="upload-panel" aria-label="Default Excel workbook">
-        <label class="upload-box" style="cursor: pointer;">
-          <span>Default Excel</span>
-          <strong>Click to Select .xlsx file</strong>
-          <input type="file" id="fileUpload" accept=".xlsx" style="display: none;" />
-        </label>
-        <p id="uploadStatus">Loading workbook from this dashboard folder...</p>
-      </section>
+
 
       <section class="filters" aria-label="Dashboard filters">
         <label>
