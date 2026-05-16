@@ -406,8 +406,8 @@ td:first-child {
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--line);
+    padding: 8px;
+    border-bottom: 1px solid #111111;
     text-align: right;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -416,8 +416,11 @@ td:first-child {
 
   td::before {
     content: attr(data-label);
-    flex: 0 0 42%;
-    color: var(--muted);
+    flex: 0 0 38%;
+    margin: -8px 0 -8px -8px;
+    padding: 8px;
+    background: #111111;
+    color: #ffffff;
     font-weight: 800;
     text-align: left;
     text-transform: uppercase;
@@ -434,6 +437,7 @@ td:first-child {
   td.row-title {
     display: block;
     padding-top: 0;
+    background: #f47b20;
     color: var(--ink);
     font-size: 14px;
     font-weight: 850;
@@ -442,7 +446,8 @@ td:first-child {
 
   td.row-title::before {
     display: block;
-    margin-bottom: 3px;
+    margin: 0 -8px 8px;
+    background: #111111;
     font-size: 10px;
   }
 }
