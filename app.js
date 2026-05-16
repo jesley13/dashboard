@@ -3,6 +3,7 @@ let targetByExecutive = buildTargetMap(rawRows);
 let currentSource = window.DASHBOARD_DATA.meta?.source || "Excel workbook";
 
 const DEFAULT_WORKBOOK_PATH = "workbook";
+const WORKBOOK_MANIFEST_PATH = "workbook.json";
 const monthOrder = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 const requiredColumns = ["Month", "Branch", "Stream", "Executive", "Billing", "Cost", "Revenue", "Target"];
 
@@ -225,20 +226,50 @@ function useWorkbookRows(rows, sourceName) {
   render();
 }
 
+async function fetchWorkbookFromManifest() {
+  const manifestResponse = await fetch(WORKBOOK_MANIFEST_PATH, { cache: "no-store" });
+  if (!manifestResponse.ok) {
+    throw new Error("Could not find an Excel workbook in the dashboard folder.");
+  }
+
+  const manifest = await manifestResponse.json();
+  const workbookName = String(manifest.file || "").trim();
+  if (!workbookName) {
+    throw new Error("Workbook manifest does not name an Excel file.");
+  }
+
+  const workbookResponse = await fetch(workbookName, { cache: "no-store" });
+  if (!workbookResponse.ok) {
+    throw new Error(`Could not find ${workbookName} in the dashboard folder.`);
+  }
+
+  return {
+    buffer: await workbookResponse.arrayBuffer(),
+    name: workbookName
+  };
+}
+
 async function loadDefaultWorkbook() {
   const status = document.querySelector("#uploadStatus");
   status.textContent = "Reading Excel workbook from this dashboard folder...";
 
   try {
-    const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error("Could not find an Excel workbook in the dashboard folder.");
+    let workbookData;
+
+    try {
+      const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
+      if (!response.ok) throw new Error("Dynamic workbook route is not available.");
+      workbookData = {
+        buffer: await response.arrayBuffer(),
+        name: decodeURIComponent(response.headers.get("X-Workbook-Name") || "Excel workbook")
+      };
+    } catch {
+      workbookData = await fetchWorkbookFromManifest();
     }
 
-    const workbookName = decodeURIComponent(response.headers.get("X-Workbook-Name") || "Excel workbook");
-    const rows = parseWorkbook(await response.arrayBuffer());
-    useWorkbookRows(rows, workbookName);
-    status.textContent = `Loaded ${workbookName} from this dashboard folder.`;
+    const rows = parseWorkbook(workbookData.buffer);
+    useWorkbookRows(rows, workbookData.name);
+    status.textContent = `Loaded ${workbookData.name} from this dashboard folder.`;
   } catch (error) {
     render();
     status.textContent = `Using embedded data. ${error.message}`;

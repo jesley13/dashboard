@@ -15,7 +15,7 @@ const contentTypes = {
 
 function findWorkbook() {
   return fs.readdirSync(root)
-    .filter(file => file.toLowerCase().endsWith(".xlsx"))
+    .filter(file => file.toLowerCase().endsWith(".xlsx") && !file.startsWith("~$"))
     .sort((a, b) => a.localeCompare(b))[0];
 }
 
