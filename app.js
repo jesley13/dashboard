@@ -44,6 +44,10 @@ function fiscalYearFromFilename(filename) {
   return `FY 20${match[1]}-${match[2]}`;
 }
 
+function displaySourceName(filename) {
+  return String(filename || "Excel workbook").replace(/\.[^.]+$/, "");
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -188,7 +192,7 @@ function renderClients(rows) {
 function render() {
   const rows = filteredRows();
   const totals = sumRows(rows);
-  setText("#sourceName", currentSource);
+  setText("#sourceName", displaySourceName(currentSource));
   setText("#fiscalYearLabel", fiscalYearFromFilename(currentSource));
   renderSummary(totals);
   renderRows(document.querySelector("#monthTable"), sortGroups(groupRows(rows, "Month"), "Month"), "Month");
