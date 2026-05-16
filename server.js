@@ -14,9 +14,12 @@ const contentTypes = {
 };
 
 function findWorkbook() {
-  return fs.readdirSync(root)
-    .filter(file => file.toLowerCase().endsWith(".xlsx") && !file.startsWith("~$"))
-    .sort((a, b) => a.localeCompare(b))[0];
+  const files = fs.readdirSync(root)
+    .filter(file => file.toLowerCase().endsWith(".xlsx") && !file.startsWith("~$"));
+  if (files.length === 0) return null;
+  return files.sort((a, b) => {
+    return fs.statSync(path.join(root, b)).mtimeMs - fs.statSync(path.join(root, a)).mtimeMs;
+  })[0];
 }
 
 function resolveRequestPath(urlPath) {
