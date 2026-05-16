@@ -112,14 +112,13 @@ h2 {
   font-size: 13px;
   font-weight: 850;
   text-transform: none;
-  cursor: pointer;
+  cursor: default;
 }
 
-.upload-box input {
-  max-width: 220px;
-  color: #ffffff;
-  font: inherit;
+.upload-box strong {
   font-size: 12px;
+  font-weight: 750;
+  opacity: 0.86;
 }
 
 #uploadStatus {
@@ -352,11 +351,6 @@ td:first-child {
     align-items: start;
     width: 100%;
     padding: 12px;
-  }
-
-  .upload-box input {
-    max-width: 100%;
-    width: 100%;
   }
 
   .filters button {

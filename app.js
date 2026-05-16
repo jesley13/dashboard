@@ -2,6 +2,7 @@ let rawRows = normalizeRows(window.DASHBOARD_DATA.records || []);
 let targetByExecutive = buildTargetMap(rawRows);
 let currentSource = window.DASHBOARD_DATA.meta?.source || "2627.xlsx";
 
+const DEFAULT_WORKBOOK_PATH = "2627.xlsx";
 const monthOrder = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 const requiredColumns = ["Month", "Branch", "Stream", "Executive", "Billing", "Cost", "Revenue", "Target"];
 
@@ -197,51 +198,45 @@ function render() {
   renderClients(rows);
 }
 
-function readWorkbook(file) {
-  return new Promise((resolve, reject) => {
-    if (!window.XLSX) {
-      reject(new Error("Excel upload library is not available. Connect to the internet once, then reload this page."));
-      return;
-    }
+function parseWorkbook(buffer) {
+  if (!window.XLSX) {
+    throw new Error("Excel library is not available. Connect to the internet once, then reload this page.");
+  }
 
-    const reader = new FileReader();
-    reader.onload = event => {
-      try {
-        const workbook = XLSX.read(new Uint8Array(event.target.result), { type: "array" });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: null });
-        resolve(rows);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsArrayBuffer(file);
-  });
+  const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(firstSheet, { defval: null });
 }
 
-async function handleUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+function useWorkbookRows(rows, sourceName) {
+  const missing = requiredColumns.filter(column => !Object.prototype.hasOwnProperty.call(rows[0] || {}, column));
+  if (missing.length) {
+    throw new Error(`Missing required columns: ${missing.join(", ")}`);
+  }
 
+  rawRows = normalizeRows(rows);
+  targetByExecutive = buildTargetMap(rawRows);
+  currentSource = sourceName;
+  refreshFilters(true);
+  render();
+}
+
+async function loadDefaultWorkbook() {
   const status = document.querySelector("#uploadStatus");
-  status.textContent = `Reading ${file.name}...`;
+  status.textContent = `Reading ${DEFAULT_WORKBOOK_PATH}...`;
 
   try {
-    const rows = await readWorkbook(file);
-    const missing = requiredColumns.filter(column => !Object.prototype.hasOwnProperty.call(rows[0] || {}, column));
-    if (missing.length) {
-      throw new Error(`Missing required columns: ${missing.join(", ")}`);
+    const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Could not find ${DEFAULT_WORKBOOK_PATH} in the dashboard folder.`);
     }
 
-    rawRows = normalizeRows(rows);
-    targetByExecutive = buildTargetMap(rawRows);
-    currentSource = file.name;
-    refreshFilters(true);
-    render();
-    status.textContent = `Loaded ${file.name}.`;
+    const rows = parseWorkbook(await response.arrayBuffer());
+    useWorkbookRows(rows, DEFAULT_WORKBOOK_PATH);
+    status.textContent = `Loaded ${DEFAULT_WORKBOOK_PATH} from this dashboard folder.`;
   } catch (error) {
-    status.textContent = `Could not load workbook: ${error.message}`;
+    render();
+    status.textContent = `Using embedded data. ${error.message}`;
   }
 }
 
@@ -252,8 +247,8 @@ function init() {
     refreshFilters(true);
     render();
   });
-  document.querySelector("#excelUpload").addEventListener("change", handleUpload);
   render();
+  loadDefaultWorkbook();
 }
 
 init();
