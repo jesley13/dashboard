@@ -282,7 +282,7 @@ async function fetchWorkbookFromManifest() {
 
 async function loadDefaultWorkbook() {
   const status = document.querySelector("#uploadStatus");
-  status.textContent = "Reading Excel workbook from this dashboard folder...";
+  if (status) status.textContent = "Reading Excel workbook from this dashboard folder...";
 
   try {
     let workbookData;
@@ -300,10 +300,10 @@ async function loadDefaultWorkbook() {
 
     const rows = parseWorkbook(workbookData.buffer);
     useWorkbookRows(rows, workbookData.name);
-    status.textContent = `Loaded ${workbookData.name} from this dashboard folder.`;
+    if (status) status.textContent = `Loaded ${workbookData.name} from this dashboard folder.`;
   } catch (error) {
     render();
-    status.textContent = `Using embedded data. ${error.message}`;
+    if (status) status.textContent = `Using embedded data. ${error.message}`;
   }
 }
 
@@ -320,14 +320,14 @@ function init() {
       const file = e.target.files[0];
       if (!file) return;
       const status = document.querySelector("#uploadStatus");
-      status.textContent = `Reading ${file.name}...`;
+      if (status) status.textContent = `Reading ${file.name}...`;
       try {
         const buffer = await file.arrayBuffer();
         const rows = parseWorkbook(buffer);
         useWorkbookRows(rows, file.name);
-        status.textContent = `Loaded ${file.name} from manual selection.`;
+        if (status) status.textContent = `Loaded ${file.name} from manual selection.`;
       } catch (error) {
-        status.textContent = `Error: ${error.message}`;
+        if (status) status.textContent = `Error: ${error.message}`;
       }
     });
   }
