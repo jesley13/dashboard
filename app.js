@@ -1,8 +1,8 @@
 let rawRows = normalizeRows(window.DASHBOARD_DATA.records || []);
 let targetByExecutive = buildTargetMap(rawRows);
-let currentSource = window.DASHBOARD_DATA.meta?.source || "2627.xlsx";
+let currentSource = window.DASHBOARD_DATA.meta?.source || "Excel workbook";
 
-const DEFAULT_WORKBOOK_PATH = "2627.xlsx";
+const DEFAULT_WORKBOOK_PATH = "workbook";
 const monthOrder = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 const requiredColumns = ["Month", "Branch", "Stream", "Executive", "Billing", "Cost", "Revenue", "Target"];
 
@@ -223,17 +223,18 @@ function useWorkbookRows(rows, sourceName) {
 
 async function loadDefaultWorkbook() {
   const status = document.querySelector("#uploadStatus");
-  status.textContent = `Reading ${DEFAULT_WORKBOOK_PATH}...`;
+  status.textContent = "Reading Excel workbook from this dashboard folder...";
 
   try {
     const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
     if (!response.ok) {
-      throw new Error(`Could not find ${DEFAULT_WORKBOOK_PATH} in the dashboard folder.`);
+      throw new Error("Could not find an Excel workbook in the dashboard folder.");
     }
 
+    const workbookName = decodeURIComponent(response.headers.get("X-Workbook-Name") || "Excel workbook");
     const rows = parseWorkbook(await response.arrayBuffer());
-    useWorkbookRows(rows, DEFAULT_WORKBOOK_PATH);
-    status.textContent = `Loaded ${DEFAULT_WORKBOOK_PATH} from this dashboard folder.`;
+    useWorkbookRows(rows, workbookName);
+    status.textContent = `Loaded ${workbookName} from this dashboard folder.`;
   } catch (error) {
     render();
     status.textContent = `Using embedded data. ${error.message}`;

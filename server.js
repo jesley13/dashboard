@@ -13,6 +13,12 @@ const contentTypes = {
   ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 };
 
+function findWorkbook() {
+  return fs.readdirSync(root)
+    .filter(file => file.toLowerCase().endsWith(".xlsx"))
+    .sort((a, b) => a.localeCompare(b))[0];
+}
+
 function resolveRequestPath(urlPath) {
   const requested = urlPath === "/" ? "index.html" : decodeURIComponent(urlPath.slice(1));
   const resolved = path.resolve(root, requested);
@@ -22,6 +28,32 @@ function resolveRequestPath(urlPath) {
 
 const server = http.createServer((request, response) => {
   const { pathname } = new URL(request.url, `http://${host}:${port}`);
+
+  if (pathname === "/workbook") {
+    const workbook = findWorkbook();
+    if (!workbook) {
+      response.writeHead(404);
+      response.end("No .xlsx file found in the dashboard folder");
+      return;
+    }
+
+    const workbookPath = path.join(root, workbook);
+    fs.readFile(workbookPath, (error, data) => {
+      if (error) {
+        response.writeHead(404);
+        response.end("Workbook not found");
+        return;
+      }
+
+      response.writeHead(200, {
+        "Content-Type": contentTypes[".xlsx"],
+        "X-Workbook-Name": encodeURIComponent(workbook)
+      });
+      response.end(data);
+    });
+    return;
+  }
+
   const filePath = resolveRequestPath(pathname);
 
   if (!filePath) {
