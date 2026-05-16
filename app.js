@@ -210,7 +210,38 @@ function parseWorkbook(buffer) {
 
   const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
   const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(firstSheet, { defval: null });
+  
+  const rawData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: null });
+  
+  let headerRowIndex = -1;
+  for (let i = 0; i < Math.min(20, rawData.length); i++) {
+    const rowStrings = (rawData[i] || []).map(cell => String(cell || "").trim());
+    const matchCount = requiredColumns.filter(col => rowStrings.includes(col)).length;
+    if (matchCount >= 3) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+
+  if (headerRowIndex === -1) {
+    return []; // Let useWorkbookRows throw the missing columns error
+  }
+
+  const headers = rawData[headerRowIndex].map(h => String(h || "").trim());
+  const rows = [];
+  for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+    const rowObj = {};
+    let hasData = false;
+    for (let j = 0; j < headers.length; j++) {
+      if (headers[j]) {
+        rowObj[headers[j]] = rawData[i][j];
+        if (rawData[i][j] !== null && rawData[i][j] !== "") hasData = true;
+      }
+    }
+    if (hasData) rows.push(rowObj);
+  }
+
+  return rows;
 }
 
 function useWorkbookRows(rows, sourceName) {
@@ -283,6 +314,23 @@ function init() {
     refreshFilters(true);
     render();
   });
+  const fileUpload = document.querySelector("#fileUpload");
+  if (fileUpload) {
+    fileUpload.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const status = document.querySelector("#uploadStatus");
+      status.textContent = `Reading ${file.name}...`;
+      try {
+        const buffer = await file.arrayBuffer();
+        const rows = parseWorkbook(buffer);
+        useWorkbookRows(rows, file.name);
+        status.textContent = `Loaded ${file.name} from manual selection.`;
+      } catch (error) {
+        status.textContent = `Error: ${error.message}`;
+      }
+    });
+  }
   render();
   loadDefaultWorkbook();
 }
