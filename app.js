@@ -86,7 +86,7 @@ function normalizeRows(rows) {
 function buildTargetMap(rows) {
   return rows.reduce((map, row) => {
     if (row.Executive && val(row, "Target")) {
-      map.set(row.Executive, Math.max(map.get(row.Executive) || 0, val(row, "Target")));
+      map.set(row.Executive, (map.get(row.Executive) || 0) + val(row, "Target"));
     }
     return map;
   }, new Map());
