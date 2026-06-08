@@ -4,6 +4,9 @@ let currentSource = window.DASHBOARD_DATA.meta?.source || "Excel workbook";
 
 const DEFAULT_WORKBOOK_PATH = "workbook";
 const WORKBOOK_MANIFEST_PATH = "workbook.json";
+const SAVED_WORKBOOK_DB = "dashboardWorkbook";
+const SAVED_WORKBOOK_STORE = "files";
+const SAVED_WORKBOOK_KEY = "lastWorkbook";
 const monthOrder = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 const requiredColumns = ["Month", "Branch", "Stream", "Executive", "Billing", "Cost", "Revenue", "Target"];
 
@@ -257,6 +260,42 @@ function useWorkbookRows(rows, sourceName) {
   render();
 }
 
+function openWorkbookDb() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("Browser storage is not available."));
+      return;
+    }
+
+    const request = indexedDB.open(SAVED_WORKBOOK_DB, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(SAVED_WORKBOOK_STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function readSavedWorkbook() {
+  const db = await openWorkbookDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(SAVED_WORKBOOK_STORE, "readonly");
+    const request = transaction.objectStore(SAVED_WORKBOOK_STORE).get(SAVED_WORKBOOK_KEY);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveWorkbook(name, buffer) {
+  const db = await openWorkbookDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(SAVED_WORKBOOK_STORE, "readwrite");
+    transaction.objectStore(SAVED_WORKBOOK_STORE).put({ name, buffer }, SAVED_WORKBOOK_KEY);
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
 async function fetchWorkbookFromManifest() {
   const manifestResponse = await fetch(WORKBOOK_MANIFEST_PATH, { cache: "no-store" });
   if (!manifestResponse.ok) {
@@ -282,25 +321,38 @@ async function fetchWorkbookFromManifest() {
 
 async function loadDefaultWorkbook() {
   const status = document.querySelector("#uploadStatus");
-  if (status) status.textContent = "Reading Excel workbook from this dashboard folder...";
+  if (status) status.textContent = "Reading last used Excel workbook...";
 
   try {
     let workbookData;
+    let workbookSource = "dashboard folder";
+    let savedWorkbook = null;
 
     try {
-      const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
-      if (!response.ok) throw new Error("Dynamic workbook route is not available.");
-      workbookData = {
-        buffer: await response.arrayBuffer(),
-        name: decodeURIComponent(response.headers.get("X-Workbook-Name") || "Excel workbook")
-      };
+      savedWorkbook = await readSavedWorkbook();
     } catch {
-      workbookData = await fetchWorkbookFromManifest();
+      savedWorkbook = null;
+    }
+
+    if (savedWorkbook?.buffer && savedWorkbook?.name) {
+      workbookData = savedWorkbook;
+      workbookSource = "last used file";
+    } else {
+      try {
+        const response = await fetch(DEFAULT_WORKBOOK_PATH, { cache: "no-store" });
+        if (!response.ok) throw new Error("Dynamic workbook route is not available.");
+        workbookData = {
+          buffer: await response.arrayBuffer(),
+          name: decodeURIComponent(response.headers.get("X-Workbook-Name") || "Excel workbook")
+        };
+      } catch {
+        workbookData = await fetchWorkbookFromManifest();
+      }
     }
 
     const rows = parseWorkbook(workbookData.buffer);
     useWorkbookRows(rows, workbookData.name);
-    if (status) status.textContent = `Loaded ${workbookData.name} from this dashboard folder.`;
+    if (status) status.textContent = `Loaded ${workbookData.name} from ${workbookSource}.`;
   } catch (error) {
     render();
     if (status) status.textContent = `Using embedded data. ${error.message}`;
@@ -325,6 +377,11 @@ function init() {
         const buffer = await file.arrayBuffer();
         const rows = parseWorkbook(buffer);
         useWorkbookRows(rows, file.name);
+        try {
+          await saveWorkbook(file.name, buffer);
+        } catch {
+          // The workbook is still usable for this session even if browser storage is full or disabled.
+        }
         if (status) status.textContent = `Loaded ${file.name} from manual selection.`;
       } catch (error) {
         if (status) status.textContent = `Error: ${error.message}`;
